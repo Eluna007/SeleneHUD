@@ -1,0 +1,70 @@
+# SELENE HUD configuration
+# Edit this file on Selene, then: docker compose restart hud
+
+host:
+  name: SELENE
+  ip: 192.168.68.105
+  role: Ubuntu Server · Docker host · NFS
+
+# Disks to show. `path` is the path ON SELENE (the host root is mounted
+# read-only into the container at /hostfs, so these resolve automatically).
+# TODO: change the music/photos paths to wherever those drives are mounted.
+disks:
+  - name: SYSTEM NVMe
+    path: /
+  - name: MUSIC
+    path: /mnt/music
+  - name: PHOTOS
+    path: /mnt/photos
+
+# Network interfaces to ignore in the traffic panel (prefix match).
+ignore_interfaces: [lo, docker, br-, veth, tailscale, virbr]
+
+# Other machines on the network. Reachability is checked with a TCP connect.
+nodes:
+  - name: SELENE
+    address: 127.0.0.1
+    port: 22
+  - name: CRATERPI
+    address: craterpi.local   # TODO: replace with its IP
+    port: 22
+
+# Services. `container` links a service to its Docker container (for state/
+# CPU/RAM); `url` is pinged over HTTP for up/down + latency.
+# Ports below are each app's default. Adjust to match your compose files.
+services:
+  - name: Navidrome
+    group: MUSIC
+    container: navidrome
+    url: http://127.0.0.1:4533/ping
+  - name: Lidarr
+    group: MUSIC
+    container: lidarr
+    url: http://127.0.0.1:8686/ping
+  - name: slskd
+    group: MUSIC
+    container: slskd
+    url: http://127.0.0.1:5030/health
+  - name: Soularr
+    group: MUSIC
+    container: soularr          # background worker, no web UI
+  - name: Immich
+    group: PHOTOS
+    container: immich_server
+    url: http://127.0.0.1:2283/api/server/ping
+  - name: Seanime
+    group: MEDIA
+    container: seanime
+    url: http://127.0.0.1:43211/
+  - name: PKVault
+    group: TOOLS
+    container: pkvault
+    url: ""                      # TODO: add URL/port
+  - name: Pi-hole
+    group: NETWORK
+    container: pihole
+    url: http://127.0.0.1/admin/
+  - name: Pi-hole 2
+    group: NETWORK
+    container: pihole2           # TODO: name, or remove `container` if it runs on craterpi
+    url: ""                      # TODO: e.g. http://<craterpi-ip>/admin/

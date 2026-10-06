@@ -1,0 +1,13 @@
+services:
+  hud:
+    build: .
+    container_name: selene-hud
+    restart: unless-stopped
+    # Host networking + host PID namespace so the HUD sees Selene's real
+    # network interfaces and processes instead of the container's own.
+    network_mode: host
+    pid: host
+    volumes:
+      - ./config:/config:ro
+      - /:/hostfs:ro,rslave                     # disk usage, /etc/exports, os-release
+      - /var/run/docker.sock:/var/run/docker.sock:ro
